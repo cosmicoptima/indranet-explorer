@@ -23,6 +23,7 @@ async function handleAddressBarInput(event: Event) {
     if (anthropic) {
       (document.getElementById("output-frame") as HTMLIFrameElement).src = "about:blank";
       const stream = anthropic.messages
+        // TODO: this should all be configurable: model, system prompt, user message, assistant prefill
         .stream({
           max_tokens: 4096,
           model: "claude-3-opus-20240229",
