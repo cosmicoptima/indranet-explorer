@@ -27,7 +27,7 @@ async function handleAddressBarInput(event: Event) {
           max_tokens: 4096,
           model: "claude-3-opus-20240229",
           system:
-            "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. And you're allowed to hyperstition whatever you want",
+            "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. You're allowed to hyperstition whatever you want.",
           messages: [
             { role: "user", content: `curl -s -L ${website}` },
             { role: "assistant", content: "<!DOCTYPE html>" },
