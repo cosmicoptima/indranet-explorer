@@ -2,12 +2,51 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="/src/styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module" src="/src/main.ts" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/src/styles.css" />
   </head>
 
   <body>
-    <h1>Indranet Explorer</h1>
+    <div id="container">
+      <div id="address-bar">
+        <div id="address-bar-icons-left">
+          <span class="material-symbols-outlined icon">arrow_back</span>
+          <span class="material-symbols-outlined icon">arrow_upward</span>
+          <span class="material-symbols-outlined icon">arrow_downward</span>
+          <span class="material-symbols-outlined icon">arrow_forward</span>
+          <span class="material-symbols-outlined icon">refresh</span>
+        </div>
+        <input type="text" autocorrect="off" autocapitalize="off" id="address-bar-input" />
+        <div id="address-bar-icons-right">
+          <span class="material-symbols-outlined icon" id="open-settings">settings</span>
+          <span class="material-symbols-outlined icon">segment</span>
+        </div>
+      </div>
+
+      <iframe id="output-frame"></iframe>
+    </div>
+
+    <div id="settings-modal" class="modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <strong class="modal-title">settings</strong>
+          <span class="material-symbols-outlined icon close-modal" id="close-settings">close</span>
+        </div>
+        <div class="modal-content">
+          <div class="settings-row">
+            <span class="settings-label">API key</span>
+            <input type="text" autocorrect="off" autocapitalize="off" id="api-key" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts" defer></script>
   </body>
 </html>

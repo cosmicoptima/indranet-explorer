@@ -10,11 +10,12 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.3",
     "@tauri-apps/api": "^1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1",
-    "vite": "^5.3.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
   }
 }

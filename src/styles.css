@@ -1,0 +1,120 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #282828;
+  color: #ccc;
+  font-family: 'Noto Sans', sans-serif;
+}
+
+#container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#address-bar {
+  width: calc(100% - 0.8rem);
+  padding: 0.4rem;
+  position: sticky;
+  top: 0;
+  background-color: #303030;
+
+  display: flex;
+  align-items: center;
+}
+
+#address-bar-icons-left {
+  display: flex;
+  align-items: center;
+  margin-right: 0.3rem;
+}
+
+#address-bar-icons-right {
+  display: flex;
+  align-items: center;
+  margin-left: 0.3rem;
+  gap: 0.1rem;
+}
+
+input {
+  border: none;
+  outline: none;
+  background-color: #282828;
+  color: #ccc;
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 14px;
+}
+
+#address-bar input {
+  height: 1.3rem;
+  flex-grow: 1;
+}
+
+.icon {
+  color: #ccc;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  font-size: 1.4rem;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+}
+
+.modal-open {
+  display: block;
+}
+
+.modal-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #303030;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #383838;
+}
+
+.modal-title {
+  margin: 0.2rem 0.4rem;
+}
+
+.close-modal {
+  font-size: 1.4rem;
+}
+
+.modal-content {
+  padding: 0.4rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-label {
+  margin-right: 0.4rem;
+}
+
+/*.settings-row > * {
+  flex: 1;
+}*/
+
+#output-frame {
+  width: 100%;
+  flex-grow: 1;
+  border: none;
+}
