@@ -17,28 +17,32 @@ function setUpAnthropic() {
 
 setUpAnthropic();
 
+async function loadWebpage() {
+  const webpage = (document.getElementById("address-bar-input") as HTMLInputElement)?.value;
+  if (anthropic) {
+    (document.getElementById("output-frame") as HTMLIFrameElement).src = "about:blank";
+    const stream = anthropic.messages
+      // TODO: this should all be configurable: model, system prompt, user message, assistant prefill
+      .stream({
+        max_tokens: 4096,
+        model: "claude-3-opus-20240229",
+        system:
+          "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. You're allowed to hyperstition whatever you want.",
+        messages: [
+          { role: "user", content: `curl -s -L ${webpage}` },
+          { role: "assistant", content: "<!DOCTYPE html>" },
+        ],
+      })
+      .on("text", (text) => {
+        (document.getElementById("output-frame") as HTMLIFrameElement).contentDocument?.write(text);
+      });
+    await stream.finalMessage();
+  }
+}
+
 async function handleAddressBarInput(event: Event) {
   if ((event as KeyboardEvent).key === "Enter") {
-    const website = (document.getElementById("address-bar-input") as HTMLInputElement)?.value;
-    if (anthropic) {
-      (document.getElementById("output-frame") as HTMLIFrameElement).src = "about:blank";
-      const stream = anthropic.messages
-        // TODO: this should all be configurable: model, system prompt, user message, assistant prefill
-        .stream({
-          max_tokens: 4096,
-          model: "claude-3-opus-20240229",
-          system:
-            "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. You're allowed to hyperstition whatever you want.",
-          messages: [
-            { role: "user", content: `curl -s -L ${website}` },
-            { role: "assistant", content: "<!DOCTYPE html>" },
-          ],
-        })
-        .on("text", (text) => {
-          (document.getElementById("output-frame") as HTMLIFrameElement).contentDocument?.write(text);
-        });
-      await stream.finalMessage();
-    }
+    loadWebpage();
   }
 }
 
@@ -56,6 +60,7 @@ function saveApiKey() {
   setUpAnthropic();
 }
 
+document.getElementById("refresh")?.addEventListener("click", loadWebpage);
 document.getElementById("address-bar-input")?.addEventListener("keyup", handleAddressBarInput);
 document.getElementById("open-settings")?.addEventListener("click", openSettings);
 document.getElementById("close-settings")?.addEventListener("click", closeSettings);
