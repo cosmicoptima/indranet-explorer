@@ -149,6 +149,7 @@ hr {
   width: 25rem;
   background-color: #303030;
   display: none;
+  overflow-x: hidden;
 }
 
 .sidebar-open {
@@ -166,11 +167,32 @@ hr {
 .node-content {
   padding: 0.2rem 0.4rem;
   cursor: pointer;
+
+  display: flex;
+  justify-content: space-between;
+}
+
+.node-url {
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-buttons {
+  display: none;
+}
+
+.node-buttons .icon {
+  font-size: 1.2rem;
 }
 
 .node-content:hover {
   background-color: #484848;
+}
+
+.node-content:hover .node-buttons {
+  display: flex;
 }
 
 .node-children {

@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Component } from "solid-js";
-import { createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
 import { createStore, produce, unwrap } from "solid-js/store";
 import { invoke } from "@tauri-apps/api/tauri";
 import { nanoid } from "nanoid";
@@ -90,15 +90,32 @@ function updateNode(id: string, key: keyof Node, value: any) {
   }));
 }
 
-async function loadWebpage() {
+function deleteNode(id: string) {
+  const index = data.nodes.findIndex((node: Node) => node.id === id);
+  setDataSaveP(produce((data: Data) => {
+    data.nodes.splice(index, 1);
+  }));
+
+  if (data.currentNodeId === id) {
+    const parentId = data.nodes.find((node: Node) => node.id === id)?.parentId;
+    if (parentId) {
+      setDataSave("currentNodeId", parentId);
+    } else {
+      setDataSave("currentNodeId", null);
+    }
+  }
+
+  const children = data.nodes.filter((node: Node) => node.parentId === id);
+  for (const child of children) {
+    deleteNode(child.id);
+  }
+}
+
+async function loadWebpage(url: string) {
   if (!anthropic) {
     return;
   }
 
-  const url = data.nodes.find((node: Node) => node.id === data.currentNodeId)?.url;
-  if (!url) {
-    return;
-  }
   const nodeId = createNode(url, data.currentNodeId, true);
   const thisRequestId = ++currentRequestId;
 
@@ -122,11 +139,9 @@ async function loadWebpage() {
 }
 
 async function handleAddressBarInput(event: Event) {
-  updateNode(data.currentNodeId, "url", (event.target as HTMLInputElement).value);
-
   if ((event as KeyboardEvent).key === "Enter") {
     (document.getElementById("address-bar-input") as HTMLInputElement).blur();
-    await loadWebpage();
+    await loadWebpage((event.target as HTMLInputElement).value);
   }
 }
 
@@ -140,27 +155,32 @@ const WebpageFrame = () => {
 };
 
 const Node = (props: { node: Node }) => {
-  const children = data.nodes.filter((node: Node) => node.parentId === props.node.id);
+  const children = () => data.nodes.filter((node: Node) => node.parentId === props.node.id);
   const onClick = () => setDataSave("currentNodeId", props.node.id);
 
   return <div class="node">
-      <div class={`node-content${data.currentNodeId === props.node.id ? " current-node" : ""}`} onClick={onClick}>{props.node.url}</div>
+      <div class={`node-content${data.currentNodeId === props.node.id ? " current-node" : ""}`} onClick={onClick}>
+        <div class="node-url">{props.node.url}</div>
+        <div class="node-buttons">
+          <Icon name="delete" onClick={() => deleteNode(props.node.id)} />
+        </div>
+      </div>
       <div class="node-children">
-        {children.map((child: Node) => (
-          <Node node={child} />
-        ))}
+        <For each={children()}>
+          {(child) => <Node node={child} />}
+        </For>
       </div>
     </div>
 };
 
 const Nodes = () => {
-  const rootNodes = data.nodes.filter((node: Node) => node.parentId === null);
+  const rootNodes = () => data.nodes.filter((node: Node) => node.parentId === null);
 
   return (
     <div id="sidebar-tree">
-      {rootNodes.map((node: Node) => (
-        <Node node={node} />
-      ))}
+      <For each={rootNodes()}>
+        {(node) => <Node node={node} />}
+      </For>
     </div>
   );
 };
@@ -169,7 +189,7 @@ const App: Component = () => {
   const [settingsOpen, setSettingsOpen] = createSignal(false);
   const [sidebarOpen, setSidebarOpen] = createSignal(false);
 
-  const currentURL = () => getNode(data.currentNodeId)?.url;
+  const currentURL = () => getNode(data.currentNodeId)?.url ?? "";
 
   return (
     <>
