@@ -156,10 +156,6 @@ hr {
   display: block;
 }
 
-.node {
-  background-color: #383838;
-}
-
 .current-node {
   background-color: #484848;
 }
@@ -167,13 +163,15 @@ hr {
 .node-content {
   padding: 0.2rem 0.4rem;
   cursor: pointer;
+  height: 1.2rem;
 
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
 .node-url {
-  font-size: 14px;
+  font-size: 13.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -196,5 +194,5 @@ hr {
 }
 
 .node-children {
-  padding-left: 0.4rem;
+  padding-left: 0.8rem;
 }

@@ -64,7 +64,7 @@ function createNode(url: string, parentId: string | null, select: boolean = fals
     id: nanoid(),
     url,
     content: null,
-    parentId,
+    parentId: parentId && getNode(parentId) ? parentId : null,
   };
 
   setDataSaveP(produce((data: Data) => {
@@ -91,32 +91,56 @@ function updateNode(id: string, key: keyof Node, value: any) {
 }
 
 function deleteNode(id: string) {
-  const index = data.nodes.findIndex((node: Node) => node.id === id);
-  setDataSaveP(produce((data: Data) => {
-    data.nodes.splice(index, 1);
-  }));
+  const nodeToDelete = getNode(id);
+  if (!nodeToDelete) return;
 
+  // Update currentNodeId if necessary
   if (data.currentNodeId === id) {
-    const parentId = data.nodes.find((node: Node) => node.id === id)?.parentId;
-    if (parentId) {
-      setDataSave("currentNodeId", parentId);
-    } else {
-      setDataSave("currentNodeId", null);
-    }
+    const newCurrentId = nodeToDelete.parentId || data.nodes.find((n: Node) => n.id !== id)?.id || null;
+    setDataSave("currentNodeId", newCurrentId);
   }
 
-  const children = data.nodes.filter((node: Node) => node.parentId === id);
-  for (const child of children) {
-    deleteNode(child.id);
-  }
+  // Recursively delete all descendants
+  const deleteDescendants = (nodeId: string) => {
+    const children = data.nodes.filter((n: Node) => n.parentId === nodeId);
+    children.forEach((child: Node) => deleteDescendants(child.id));
+    
+    setDataSaveP(produce((data: Data) => {
+      const index = data.nodes.findIndex(n => n.id === nodeId);
+      if (index !== -1) data.nodes.splice(index, 1);
+    }));
+  };
+
+  deleteDescendants(id);
 }
 
-async function loadWebpage(url: string) {
+async function loadWebpage(url: string, parentId: string | null) {
   if (!anthropic) {
     return;
   }
 
-  const nodeId = createNode(url, data.currentNodeId, true);
+  const nodeId = createNode(url, parentId, true);
+  updateNode(nodeId, "content", "<!DOCTYPE html>");
+
+  let messages = [
+    { role: "user", content: `curl -s -L ${url}` },
+    { role: "assistant", content: "<!DOCTYPE html>" },
+  ];
+
+  let currentNodeId = data.currentNodeId;
+  while (true) {
+    currentNodeId = getNode(currentNodeId)?.parentId;
+    if (!getNode(currentNodeId)?.content) {
+      break;
+    }
+    messages = [
+      { role: "user", content: `curl -s -L ${getNode(currentNodeId)?.url}` },
+      { role: "assistant", content: getNode(currentNodeId)?.content ?? "" },
+      ...messages,
+    ];
+  }
+  console.log(messages);
+
   const thisRequestId = ++currentRequestId;
 
   const stream = anthropic.messages
@@ -125,10 +149,7 @@ async function loadWebpage(url: string) {
       model: "claude-3-opus-20240229",
       system:
         "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. You're allowed to hyperstition whatever you want.",
-      messages: [
-        { role: "user", content: `curl -s -L ${url}` },
-        { role: "assistant", content: "<!DOCTYPE html>" },
-      ],
+      messages: messages as any[],
     })
     .on("text", (text) => {
       if (thisRequestId === currentRequestId) {
@@ -141,7 +162,7 @@ async function loadWebpage(url: string) {
 async function handleAddressBarInput(event: Event) {
   if ((event as KeyboardEvent).key === "Enter") {
     (document.getElementById("address-bar-input") as HTMLInputElement).blur();
-    await loadWebpage((event.target as HTMLInputElement).value);
+    await loadWebpage((event.target as HTMLInputElement).value, data.currentNodeId);
   }
 }
 
@@ -200,7 +221,7 @@ const App: Component = () => {
             <Icon name="arrow_upward" />
             <Icon name="arrow_downward" />
             <Icon name="arrow_forward" />
-            <Icon name="refresh" />
+            <Icon name="refresh" onClick={() => loadWebpage(currentURL(), getNode(data.currentNodeId)?.parentId)} />
           </div>
 
           <input type="text" autocorrect="off" autocapitalize="off" id="address-bar-input" onKeyUp={handleAddressBarInput} value={currentURL()} />
