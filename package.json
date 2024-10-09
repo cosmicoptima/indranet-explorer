@@ -11,11 +11,15 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.3",
-    "@tauri-apps/api": "^1"
+    "@tauri-apps/api": "^1",
+    "nanoid": "^5.0.7",
+    "solid-js": "^1.9.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1",
+    "solid-devtools": "^0.30.1",
     "typescript": "^5.2.2",
-    "vite": "^5.3.1"
+    "vite": "^5.3.1",
+    "vite-plugin-solid": "^2.10.2"
   }
 }

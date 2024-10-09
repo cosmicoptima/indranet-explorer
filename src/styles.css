@@ -134,8 +134,45 @@ hr {
   margin: 0.4rem 0 calc(0.4rem - 1px);
 }*/
 
+#main-row {
+  display: flex;
+  flex-grow: 1;
+}
+
 #output-frame {
   width: 100%;
   flex-grow: 1;
   border: none;
+}
+
+.right-sidebar {
+  width: 25rem;
+  background-color: #303030;
+  display: none;
+}
+
+.sidebar-open {
+  display: block;
+}
+
+.node {
+  background-color: #383838;
+}
+
+.current-node {
+  background-color: #484848;
+}
+
+.node-content {
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.node-content:hover {
+  background-color: #484848;
+}
+
+.node-children {
+  padding-left: 0.4rem;
 }
