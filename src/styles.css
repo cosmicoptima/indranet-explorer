@@ -1,3 +1,7 @@
+* {
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -137,16 +141,17 @@ hr {
 #main-row {
   display: flex;
   flex-grow: 1;
+  overflow: hidden;
 }
 
 #output-frame {
-  width: 100%;
   flex-grow: 1;
   border: none;
 }
 
 .right-sidebar {
   width: 25rem;
+  height: 100%;
   background-color: #303030;
   display: none;
   overflow-x: hidden;
@@ -194,5 +199,16 @@ hr {
 }
 
 .node-children {
-  padding-left: 0.8rem;
+  display: flex;
+  width: 100%;
+}
+
+.node-children-spacer {
+  margin: 0 0.4rem 0 0.6rem;
+  border-left: 1px solid #404040;
+}
+
+.node-children-content {
+  flex-grow: 1;
+  overflow: auto;
 }

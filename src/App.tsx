@@ -187,9 +187,12 @@ const Node = (props: { node: Node }) => {
         </div>
       </div>
       <div class="node-children">
-        <For each={children()}>
-          {(child) => <Node node={child} />}
-        </For>
+        <div class="node-children-spacer"></div>
+        <div class="node-children-content">
+          <For each={children()}>
+            {(child) => <Node node={child} />}
+          </For>
+        </div>
       </div>
     </div>
 };
