@@ -5,6 +5,6 @@ pnpm tauri dev
 ```
 
 TODO:
-- make clicking links work
+- display error if no API key
 - logo
 - package as app
