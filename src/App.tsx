@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
+import * as cheerio from "cheerio";
 import type { Component } from "solid-js";
-import { createSignal, For } from "solid-js";
+import { createSignal, onCleanup, onMount, For } from "solid-js";
 import { createStore, produce, unwrap } from "solid-js/store";
 import { invoke } from "@tauri-apps/api/tauri";
 import { nanoid } from "nanoid";
@@ -93,7 +94,6 @@ function getNode(id: string) {
 
 function updateNode(id: string, key: keyof Node, value: any) {
   const index = data.nodes.findIndex((node: Node) => node.id === id);
-  console.log(id, key, value);
   setDataSaveP(produce((data: Data) => {
     (data.nodes[index] as any)[key] = value;
   }));
@@ -178,7 +178,6 @@ async function loadWebpage(url: string, parentId: string | null) {
       ...messages,
     ];
   }
-  console.log(messages);
 
   const thisRequestId = ++currentRequestId;
 
@@ -205,12 +204,41 @@ async function handleAddressBarInput(event: Event) {
   }
 }
 
+function handleMessage(event: MessageEvent) {
+  console.log(event);
+  const url = new URL(event.data, getNode(data.currentNodeId)?.url ?? "").href;
+  loadWebpage(url, data.currentNodeId);
+}
+
 const Icon = (props: { name: string, onClick?: () => void }) => (
   <span class="material-symbols-outlined icon" onClick={props.onClick}>{props.name}</span>
 );
 
+function performXssAttack(html: string) {
+  const $ = cheerio.load(html);
+  $("head").prepend(`
+    <script>
+      document.addEventListener('click', (event) => {
+        if (event.target.href) {
+          event.preventDefault();
+          window.parent.postMessage(event.target.getAttribute('href'), '*');
+        }
+      });
+    </script>
+  `);
+  $("script").each((_, script) => {
+    let content = $(script).html();
+    if (content) {
+      content = content.replace(/window\.location\.href\s*=\s*['"]?([^'"]+)['"]/g, "window.parent.postMessage(\"$1\", '*')");  // window.location.href
+      content = content.replace(/window\.location\s*=\s*['"]?([^'"]+)['"]/g, "window.parent.postMessage(\"$1\", '*')");  // window.location
+      $(script).html(content);
+    }
+  });
+  return $.html();
+}
+
 const WebpageFrame = () => {
-  const content = () => getNode(data.currentNodeId)?.content ?? "";
+  const content = () => performXssAttack(getNode(data.currentNodeId)?.content ?? "");
   return <iframe id="output-frame" srcdoc={content()}></iframe>
 };
 
@@ -265,9 +293,18 @@ const App: Component = () => {
 
   const currentURL = () => getNode(data.currentNodeId)?.url ?? "";
 
+  onMount(() => {
+    window.addEventListener("message", handleMessage);
+  });
+  onCleanup(() => {
+    window.removeEventListener("message", handleMessage);
+  });
+
   return (
     <>
       <div id="container">
+        <div id="notch-area"></div>
+
         <div id="address-bar">
           <div id="address-bar-icons-left">
             <Icon name="arrow_back" onClick={selectParent} />

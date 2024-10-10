@@ -12,6 +12,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.3",
     "@tauri-apps/api": "^1",
+    "cheerio": "^1.0.0",
     "nanoid": "^5.0.7",
     "solid-js": "^1.9.1"
   },

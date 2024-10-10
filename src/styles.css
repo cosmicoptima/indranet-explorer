@@ -10,6 +10,18 @@ body {
   font-family: 'Noto Sans', sans-serif;
 }
 
+#notch-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background-color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 #container {
   display: flex;
   flex-direction: column;
