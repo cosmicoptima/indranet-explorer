@@ -199,12 +199,23 @@ const Node = (props: { node: Node }) => {
 
 const Nodes = () => {
   const rootNodes = () => data.nodes.filter((node: Node) => node.parentId === null);
+  const onHomeClick = () => setDataSave("currentNodeId", null);
 
   return (
     <div id="sidebar-tree">
-      <For each={rootNodes()}>
-        {(node) => <Node node={node} />}
-      </For>
+      <div class="node">
+        <div class={`node-content${data.currentNodeId === null ? " current-node" : ""}`} onClick={onHomeClick}>
+          <div class="node-url">home</div>
+        </div>
+        <div class="node-children">
+          <div class="node-children-spacer"></div>
+          <div class="node-children-content">
+            <For each={rootNodes()}>
+              {(node) => <Node node={node} />}
+            </For>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
