@@ -15,6 +15,7 @@ interface Node {
   url: string;
   content: string | null;
   parentId: string | null;
+  lastVisited: number | null;
 }
 
 interface Data {
@@ -59,12 +60,20 @@ function saveApiKey(event: InputEvent) {
   setDataSave("apiKey", (event.target as HTMLInputElement).value);
 }
 
+function selectNode(id: string) {
+  if (id) {
+    updateNode(id, "lastVisited", Date.now());
+  }
+  setDataSave("currentNodeId", id);
+}
+
 function createNode(url: string, parentId: string | null, select: boolean = false) {
   const node: Node = {
     id: nanoid(),
     url,
     content: null,
     parentId: parentId && getNode(parentId) ? parentId : null,
+    lastVisited: select ? Date.now() : null,
   };
 
   setDataSaveP(produce((data: Data) => {
@@ -72,7 +81,7 @@ function createNode(url: string, parentId: string | null, select: boolean = fals
   }));
 
   if (select) {
-    setDataSave("currentNodeId", node.id);
+    selectNode(node.id);
   }
 
   return node.id;
@@ -86,7 +95,7 @@ function updateNode(id: string, key: keyof Node, value: any) {
   const index = data.nodes.findIndex((node: Node) => node.id === id);
   console.log(id, key, value);
   setDataSaveP(produce((data: Data) => {
-    data.nodes[index][key] = value;
+    (data.nodes[index] as any)[key] = value;
   }));
 }
 
@@ -97,7 +106,7 @@ function deleteNode(id: string) {
   // Update currentNodeId if necessary
   if (data.currentNodeId === id) {
     const newCurrentId = nodeToDelete.parentId || data.nodes.find((n: Node) => n.id !== id)?.id || null;
-    setDataSave("currentNodeId", newCurrentId);
+    selectNode(newCurrentId);
   }
 
   // Recursively delete all descendants
@@ -112,6 +121,36 @@ function deleteNode(id: string) {
   };
 
   deleteDescendants(id);
+}
+
+function selectParent() {
+  if (data.currentNodeId) {
+    selectNode(getNode(data.currentNodeId)?.parentId);
+  }
+}
+
+function selectPreviousSibling() {
+  const currentNode = getNode(data.currentNodeId);
+  const siblings = data.nodes.filter((n: Node) => n.parentId === currentNode?.parentId);
+  const index = siblings.indexOf(currentNode);
+  const previousIndex = (index - 1 + siblings.length) % siblings.length;
+  selectNode(siblings[previousIndex].id);
+}
+
+function selectNextSibling() {
+  const currentNode = getNode(data.currentNodeId);
+  const siblings = data.nodes.filter((n: Node) => n.parentId === currentNode?.parentId);
+  const index = siblings.indexOf(currentNode);
+  const nextIndex = (index + 1) % siblings.length;
+  selectNode(siblings[nextIndex].id);
+}
+
+function selectMostRecentChild() {
+  let children = data.nodes.filter((n: Node) => n.parentId === data.currentNodeId);
+  children = children.sort((a: Node, b: Node) => (b.lastVisited ?? 0) - (a.lastVisited ?? 0));
+  if (children.length > 0) {
+    selectNode(children[0].id);
+  }
 }
 
 async function loadWebpage(url: string, parentId: string | null) {
@@ -231,10 +270,10 @@ const App: Component = () => {
       <div id="container">
         <div id="address-bar">
           <div id="address-bar-icons-left">
-            <Icon name="arrow_back" />
-            <Icon name="arrow_upward" />
-            <Icon name="arrow_downward" />
-            <Icon name="arrow_forward" />
+            <Icon name="arrow_back" onClick={selectParent} />
+            <Icon name="arrow_upward" onClick={selectPreviousSibling} />
+            <Icon name="arrow_downward" onClick={selectNextSibling} />
+            <Icon name="arrow_forward" onClick={selectMostRecentChild} />
             <Icon name="refresh" onClick={() => loadWebpage(currentURL(), getNode(data.currentNodeId)?.parentId)} />
           </div>
 
