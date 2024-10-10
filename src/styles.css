@@ -10,28 +10,26 @@ body {
   font-family: 'Noto Sans', sans-serif;
 }
 
-#notch-area {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: env(safe-area-inset-top);
-  background-color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 #container {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
+/*#ticker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 22px;
+  background-color: #303030;
+}*/
+
 #address-bar {
   width: calc(100% - 0.8rem);
   padding: 0.4rem;
   position: sticky;
+  /*top: 22px;*/
   top: 0;
   background-color: #303030;
 
@@ -154,6 +152,8 @@ hr {
   display: flex;
   flex-grow: 1;
   overflow: hidden;
+  /*margin-top: 22px;*/
+  margin-top: 0;
 }
 
 #output-frame {

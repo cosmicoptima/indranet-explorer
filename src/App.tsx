@@ -31,7 +31,11 @@ const DEFAULT_DATA: Data = {
   currentNodeId: null,
 };
 
-const [data, setData] = createStore(JSON.parse(await invoke("load_data")));
+const [data, setData] = createStore(DEFAULT_DATA as any);
+onMount(async () => {
+  const loadedData = JSON.parse(await invoke("load_data"));
+  setData(loadedData);
+});
 for (const key in DEFAULT_DATA) {
   if (!(key in data)) {
     setData(key, DEFAULT_DATA[key as keyof Data]);
@@ -300,12 +304,12 @@ const App: Component = () => {
     window.removeEventListener("message", handleMessage);
   });
 
+  // <div id="ticker" class={tickerVisible() ? "ticker-visible" : ""} data-tauri-drag-region></div>
+
   return (
     <>
       <div id="container">
-        <div id="notch-area"></div>
-
-        <div id="address-bar">
+        <div id="address-bar" data-tauri-drag-region>
           <div id="address-bar-icons-left">
             <Icon name="arrow_back" onClick={selectParent} />
             <Icon name="arrow_upward" onClick={selectPreviousSibling} />
