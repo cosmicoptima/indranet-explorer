@@ -35,16 +35,16 @@ const [data, setData] = createStore(DEFAULT_DATA as any);
 onMount(async () => {
   const loadedData = JSON.parse(await invoke("load_data"));
   setData(loadedData);
-});
-for (const key in DEFAULT_DATA) {
-  if (!(key in data)) {
-    setData(key, DEFAULT_DATA[key as keyof Data]);
-  }
-}
 
-if (data.apiKey) {
-  anthropic = new Anthropic({ apiKey: data.apiKey, dangerouslyAllowBrowser: true });
-}
+  for (const key in DEFAULT_DATA) {
+    if (!(key in data)) {
+      setData(key, DEFAULT_DATA[key as keyof Data]);
+    }
+  }
+  if (data.apiKey) {
+    anthropic = new Anthropic({ apiKey: data.apiKey, dangerouslyAllowBrowser: true });
+  }
+});
 
 function saveData() {
   invoke("save_data", { data: JSON.stringify(unwrap(data)) });
@@ -209,7 +209,6 @@ async function handleAddressBarInput(event: Event) {
 }
 
 function handleMessage(event: MessageEvent) {
-  console.log(event);
   const url = new URL(event.data, getNode(data.currentNodeId)?.url ?? "").href;
   loadWebpage(url, data.currentNodeId);
 }
