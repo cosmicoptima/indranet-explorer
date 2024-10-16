@@ -190,7 +190,7 @@ async function loadWebpage(url: string, parentId: string | null) {
       max_tokens: 4096,
       model: "claude-3-opus-20240229",
       system:
-        "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. You're allowed to hyperstition whatever you want.",
+        "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. You're allowed to hyperstition whatever you want. many links encouraged (you're like Indra's Net)",
       messages: messages as any[],
     })
     .on("text", (text) => {
