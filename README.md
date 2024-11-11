@@ -1,4 +1,4 @@
-![assets/transformer.jpg]
+![assets/transformer.jpg](assets/transformer.jpg)
 
 Development:
 ```
