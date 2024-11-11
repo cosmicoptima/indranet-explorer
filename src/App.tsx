@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import * as cheerio from "cheerio";
 import type { Component } from "solid-js";
-import { createSignal, onCleanup, onMount, For } from "solid-js";
+import { createEffect, createSignal, onCleanup, onMount, For } from "solid-js";
 import { createStore, produce, unwrap } from "solid-js/store";
 import { invoke } from "@tauri-apps/api/tauri";
 import { nanoid } from "nanoid";
@@ -21,24 +21,30 @@ interface Node {
 
 interface Data {
   apiKey: string;
+  model: string;
+  systemMessage: string;
+  userMessage: string;
   nodes: Node[];
   currentNodeId: string | null;
 }
 
 const DEFAULT_DATA: Data = {
   apiKey: "",
+  model: "claude-3-opus-20240229",
+  systemMessage: "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. You're allowed to hyperstition whatever you want.",
+  userMessage: "curl -s -L [url]",
   nodes: [],
   currentNodeId: null,
 };
 
-const [data, setData] = createStore(DEFAULT_DATA as any);
+const [data, setData] = createStore(structuredClone(DEFAULT_DATA) as any);
 onMount(async () => {
   const loadedData = JSON.parse(await invoke("load_data"));
   setData(loadedData);
 
   for (const key in DEFAULT_DATA) {
     if (!(key in data)) {
-      setData(key, DEFAULT_DATA[key as keyof Data]);
+      setDataSave(key, DEFAULT_DATA[key as keyof Data]);
     }
   }
   if (data.apiKey) {
@@ -58,6 +64,10 @@ function setDataSave(key: string, value: any) {
 function setDataSaveP(producer: any) {
   setData(producer);
   saveData();
+}
+
+function setDataDefaultSave(key: string) {
+  setDataSave(key, DEFAULT_DATA[key as keyof Data]);
 }
 
 function saveApiKey(event: InputEvent) {
@@ -127,6 +137,12 @@ function deleteNode(id: string) {
   deleteDescendants(id);
 }
 
+function deleteCurrentNode() {
+  if (data.currentNodeId) {
+    deleteNode(data.currentNodeId);
+  }
+}
+
 function selectParent() {
   if (data.currentNodeId) {
     selectNode(getNode(data.currentNodeId)?.parentId);
@@ -177,7 +193,7 @@ async function loadWebpage(url: string, parentId: string | null) {
       break;
     }
     messages = [
-      { role: "user", content: `curl -s -L ${getNode(currentNodeId)?.url}` },
+      { role: "user", content: data.userMessage.replace("[url]", getNode(currentNodeId)?.url) },
       { role: "assistant", content: getNode(currentNodeId)?.content ?? "" },
       ...messages,
     ];
@@ -188,9 +204,8 @@ async function loadWebpage(url: string, parentId: string | null) {
   const stream = anthropic.messages
     .stream({
       max_tokens: 4096,
-      model: "claude-3-opus-20240229",
-      system:
-        "You are in CLI simulation mode and respond to the user's commands only with the output of the command. The simulation parameters are that you have fun and do whatever you want. Write any CSS or JS as inline script/style tags though. You're allowed to hyperstition whatever you want. many links encouraged (you're like Indra's Net)",
+      model: data.model,
+      system: data.systemMessage,
       messages: messages as any[],
     })
     .on("text", (text) => {
@@ -213,8 +228,8 @@ function handleMessage(event: MessageEvent) {
   loadWebpage(url, data.currentNodeId);
 }
 
-const Icon = (props: { name: string, onClick?: () => void }) => (
-  <span class="material-symbols-outlined icon" onClick={props.onClick}>{props.name}</span>
+const Icon = (props: { name: string, onClick?: () => void, wideMargin?: boolean, small?: boolean }) => (
+  <span class={`material-symbols-outlined icon${props.wideMargin ? " icon-wide-margin" : ""}${props.small ? " icon-small" : ""}`} onClick={props.onClick}>{props.name}</span>
 );
 
 function performXssAttack(html: string) {
@@ -246,25 +261,53 @@ const WebpageFrame = () => {
 };
 
 const Node = (props: { node: Node }) => {
-  const children = () => data.nodes.filter((node: Node) => node.parentId === props.node.id);
-  const onClick = () => setDataSave("currentNodeId", props.node.id);
+  let contentRef: HTMLDivElement | undefined;
+  let buttonsRef: HTMLDivElement | undefined;
 
-  return <div class="node">
-      <div class={`node-content${data.currentNodeId === props.node.id ? " current-node" : ""}`} onClick={onClick}>
+  const updateButtonPosition = () => {
+    if (contentRef && buttonsRef) {
+      const rect = contentRef.getBoundingClientRect();
+      const containerRect = contentRef.closest('#sidebar-tree')!.getBoundingClientRect();
+      
+      const rightEdge = Math.min(rect.right, containerRect.right);
+      buttonsRef.style.left = `calc(${rightEdge - buttonsRef.offsetWidth}px - 0.25rem)`;
+      buttonsRef.style.top = `calc(${rect.top}px + 0.1rem)`;
+    }
+  };
+
+  createEffect(() => {
+    if (contentRef) {
+      const sidebarTree = contentRef.closest('#sidebar-tree')!;
+      sidebarTree.addEventListener('scroll', updateButtonPosition);
+      return () => sidebarTree.removeEventListener('scroll', updateButtonPosition);
+    }
+  });
+
+  const onDeleteClick = () => deleteNode(props.node.id);
+
+  return (
+    <div class="node">
+      <div 
+        class={`node-content${props.node.id === data.currentNodeId ? " current-node" : ""}`}
+        ref={contentRef}
+        onClick={() => selectNode(props.node.id)}
+        onMouseEnter={updateButtonPosition}
+      >
         <div class="node-url">{props.node.url}</div>
-        <div class="node-buttons">
-          <Icon name="delete" onClick={() => deleteNode(props.node.id)} />
+        <div class="node-buttons" ref={buttonsRef}>
+          <Icon name="delete" onClick={onDeleteClick} />
         </div>
       </div>
       <div class="node-children">
         <div class="node-children-spacer"></div>
         <div class="node-children-content">
-          <For each={children()}>
+          <For each={data.nodes.filter((n: Node) => n.parentId === props.node.id)}>
             {(child) => <Node node={child} />}
           </For>
         </div>
       </div>
     </div>
+  );
 };
 
 const Nodes = () => {
@@ -303,8 +346,6 @@ const App: Component = () => {
     window.removeEventListener("message", handleMessage);
   });
 
-  // <div id="ticker" class={tickerVisible() ? "ticker-visible" : ""} data-tauri-drag-region></div>
-
   return (
     <>
       <div id="container">
@@ -315,19 +356,38 @@ const App: Component = () => {
             <Icon name="arrow_downward" onClick={selectNextSibling} />
             <Icon name="arrow_forward" onClick={selectMostRecentChild} />
             <Icon name="refresh" onClick={() => loadWebpage(currentURL(), getNode(data.currentNodeId)?.parentId)} />
+            <Icon name="delete" onClick={deleteCurrentNode} wideMargin/>
           </div>
 
           <input type="text" autocorrect="off" autocapitalize="off" id="address-bar-input" onKeyUp={handleAddressBarInput} value={currentURL()} />
 
           <div id="address-bar-icons-right">
-            <Icon name="settings" onClick={() => setSettingsOpen(true)} />
-            <Icon name="segment" onClick={() => setSidebarOpen(!sidebarOpen())} />
+            <Icon name="settings" onClick={() => setSettingsOpen(true)} wideMargin />
+            <Icon name="segment" onClick={() => setSidebarOpen(!sidebarOpen())} wideMargin />
           </div>
         </div>
 
         <div id="main-row">
           <WebpageFrame />
           <div id="right-sidebar" class={`right-sidebar${sidebarOpen() ? " sidebar-open" : ""}`}>
+            <div id="tree-settings">
+              <div class="tree-settings-row">
+                <span class="tree-settings-label">model</span>
+                <select onInput={(e) => setDataSave("model", (e.target as HTMLSelectElement).value)} value={data.model}>
+                  <option value="claude-3-opus-20240229">claude-3-opus-20240229</option>
+                  <option value="claude-3-5-sonnet-20240620">claude-3-5-sonnet-20240620</option>
+                  <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet-20241022</option>
+               </select>
+              </div>
+              <div class="tree-settings-row">
+                <span class="tree-settings-label">system message <span class="tree-settings-label-icon"><Icon name="restart_alt" onClick={() => setDataDefaultSave("systemMessage")} small /></span></span>
+                <textarea autocapitalize="off" onInput={(e) => setDataSave("systemMessage", (e.target as HTMLTextAreaElement).value)} value={data.systemMessage}></textarea>
+              </div>
+              <div class="tree-settings-row">
+                <span class="tree-settings-label">user message <span class="tree-settings-label-icon"><Icon name="restart_alt" onClick={() => setDataDefaultSave("userMessage")} small /></span></span>
+                <input autocorrect="off" autocapitalize="off" onInput={(e) => setDataSave("userMessage", (e.target as HTMLInputElement).value)} value={data.userMessage}></input>
+              </div>
+            </div>
             <Nodes />
           </div>
         </div>
@@ -336,8 +396,8 @@ const App: Component = () => {
       <div id="settings-modal" class={`modal${settingsOpen() ? " modal-open" : ""}`}>
         <div class="modal-box">
           <div class="modal-header">
-            <strong class="modal-title">settings</strong>
-            <Icon name="close" onClick={() => setSettingsOpen(false)} />
+            <strong class="modal-header-title">settings</strong>
+            <Icon name="close" onClick={() => setSettingsOpen(false)} small />
           </div>
 
           <div class="modal-content">

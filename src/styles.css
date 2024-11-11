@@ -16,25 +16,17 @@ body {
   height: 100vh;
 }
 
-/*#ticker {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 22px;
-  background-color: #303030;
-}*/
-
 #address-bar {
   width: calc(100% - 0.8rem);
   padding: 0.4rem;
   position: sticky;
-  /*top: 22px;*/
   top: 0;
   background-color: #303030;
 
   display: flex;
   align-items: center;
+
+  z-index: 1;
 }
 
 #address-bar-icons-left {
@@ -47,7 +39,6 @@ body {
   display: flex;
   align-items: center;
   margin-left: 0.3rem;
-  gap: 0.1rem;
 }
 
 input {
@@ -57,11 +48,19 @@ input {
   color: #ccc;
   font-family: 'Noto Sans', sans-serif;
   font-size: 14px;
+  padding: 0;
 }
 
 #address-bar input {
   height: 1.3rem;
   flex-grow: 1;
+}
+
+.address-bar-spacer {
+  height: 1.3rem;
+  width: 1px;
+  background-color: #404040;
+  margin: 0 0.25rem;
 }
 
 .icon {
@@ -70,6 +69,14 @@ input {
   user-select: none;
   -webkit-user-select: none;
   font-size: 1.4rem;
+}
+
+.icon-wide-margin {
+  margin: 0 0.075rem;
+}
+
+.icon-small {
+  font-size: 1.25rem;
 }
 
 .modal {
@@ -98,15 +105,12 @@ input {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #383838;
+  background-color: #282828;
 }
 
-.modal-title {
+.modal-header-title {
+  font-size: 14px;
   margin: 0.2rem 0.4rem;
-}
-
-.close-modal {
-  font-size: 1.4rem;
 }
 
 .modal-content {
@@ -117,13 +121,14 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  font-size: 14px;
 }
 
 .settings-label {
   margin-right: 0.4rem;
 }
 
-/*select {
+select {
   color: #ccc;
   font-family: 'Noto Sans', sans-serif;
   font-size: 14px;
@@ -132,27 +137,30 @@ input {
   appearance: none;
   border-radius: 0;
   height: 1.3rem;
+  padding-right: 1.1rem;
 
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='lightgray'><polygon points='0,33 67,33 33,83'/></svg>") no-repeat;
   background-size: 0.8rem;
   background-position: 100% 50%;
   background-repeat: no-repeat;
   background-color: #282828;
-
-  flex-grow: 1;
 }
 
-hr {
+textarea {
+  color: #ccc;
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 14px;
   border: none;
-  border-top: 1px solid #444;
-  margin: 0.4rem 0 calc(0.4rem - 1px);
-}*/
+  outline: none;
+  resize: none;
+  background-color: #282828;
+  padding: 0;
+}
 
 #main-row {
   display: flex;
   flex-grow: 1;
   overflow: hidden;
-  /*margin-top: 22px;*/
   margin-top: 0;
 }
 
@@ -163,14 +171,70 @@ hr {
 
 .right-sidebar {
   width: 25rem;
-  height: 100%;
   background-color: #303030;
   display: none;
-  overflow-x: hidden;
+  padding: 0 0.4rem 0.4rem;
 }
 
 .sidebar-open {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+#tree-settings {
+  padding: 0.2rem 0.2rem 0.2rem 0.4rem;
+  border: 1px solid #404040;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.tree-settings-row {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  font-size: 13.5px;
+}
+
+.tree-settings-label {
+  margin-top: 0.1rem;
+  margin-right: 0.4rem;
+  display: flex;
+  align-items: center;
+}
+
+.tree-settings-label-icon {
+  display: flex;
+  align-items: center;
+  margin-left: 0.2rem;
+}
+
+.tree-settings-row select {
+  font-size: 13.5px;
+}
+
+.tree-settings-row textarea {
+  font-size: 13.5px;
+  height: 3.5rem;
+  width: 60%;
+}
+
+.tree-settings-row input {
+  font-size: 13.5px;
+  width: 60%;
+  height: 1.2rem;
+}
+
+#sidebar-tree {
+  border: 1px solid #404040;
+  flex-grow: 1;
+  overflow: scroll;
+  scrollbar-width: none;
+}
+
+#sidebar-tree::-webkit-scrollbar {
+  display: none;
 }
 
 .current-node {
@@ -181,21 +245,22 @@ hr {
   padding: 0.2rem 0.4rem;
   cursor: pointer;
   height: 1.2rem;
-
   display: flex;
   align-items: center;
-  justify-content: space-between;
 }
 
 .node-url {
   font-size: 13.5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .node-buttons {
   display: none;
+  position: fixed;
+  background-color: #404040;
+  border-radius: 0.2rem;
+  height: 1.2rem;
+  padding: 0.1rem 0.1rem;
+  align-items: center;
 }
 
 .node-buttons .icon {
@@ -212,7 +277,7 @@ hr {
 
 .node-children {
   display: flex;
-  width: 100%;
+  min-width: fit-content;
 }
 
 .node-children-spacer {
@@ -223,4 +288,5 @@ hr {
 .node-children-content {
   flex-grow: 1;
   overflow: auto;
+  min-width: fit-content;
 }

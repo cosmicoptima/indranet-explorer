@@ -1,0 +1,5 @@
+[v0.2.0]
+- ADD: Options to change model, system message, and user message
+- ADD: Tree extends horizontally and is horizontally scrollable
+- ADD: Delete button in address bar
+- ADD: Tentative logo

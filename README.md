@@ -1,10 +1,7 @@
-For development:
+![assets/transformer.jpg]
+
+Development:
 ```
 pnpm install
 pnpm tauri dev
 ```
-
-TODO:
-- display error if no API key
-- logo
-- package as app
