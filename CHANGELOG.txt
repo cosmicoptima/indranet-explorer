@@ -1,3 +1,7 @@
+[v0.2.1]
+- ADD: Claude 3.5 Haiku
+- CHANGE: Names of models in model list are more readable
+
 [v0.2.0]
 - ADD: Options to change model, system message, and user message
 - ADD: Tree extends horizontally and is horizontally scrollable

@@ -374,10 +374,10 @@ const App: Component = () => {
               <div class="tree-settings-row">
                 <span class="tree-settings-label">model</span>
                 <select onInput={(e) => setDataSave("model", (e.target as HTMLSelectElement).value)} value={data.model}>
-                  <option value="claude-3-opus-20240229">claude-3-opus-20240229</option>
-                  <option value="claude-3-5-sonnet-20240620">claude-3-5-sonnet-20240620</option>
-                  <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet-20241022</option>
-                  <option value="claude-3-5-haiku-20241022">claude-3-5-haiku-20241022</option>
+                  <option value="claude-3-opus-20240229">claude 3 opus</option>
+                  <option value="claude-3-5-sonnet-20240620">claude 3.5 sonnet, jun 20</option>
+                  <option value="claude-3-5-sonnet-20241022">claude 3.5 sonnet, oct 22</option>
+                  <option value="claude-3-5-haiku-20241022">claude 3.5 haiku</option>
                </select>
               </div>
               <div class="tree-settings-row">
